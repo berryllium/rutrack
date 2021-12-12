@@ -1,0 +1,59 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    app_proxy_ip: '%env(APP_PROXY_IP)%'
+    app_proxy_auth: '%env(APP_PROXY_AUTH)%'
+    app_proxy_port: '%env(APP_PROXY_PORT_HTTP)%'
+    app_torrent_url_login: '%env(APP_TORRENT_LOGIN_URL)%'
+    app_torrent_url_search: '%env(APP_TORRENT_SEARCH_URL)%'
+    app_torrent_url_forum: '%env(APP_TORRENT_FORUM_URL)%'
+    app_torrent_login: '%env(APP_TORRENT_LOGIN)%'
+    app_torrent_pass: '%env(APP_TORRENT_PASSWORD)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+            - '../src/Tests/'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    App\Service\CurlClient:
+        arguments:
+            $app_proxy_ip: '%app_proxy_ip%'
+            $app_proxy_auth: '%app_proxy_auth%'
+            $app_proxy_port: '%app_proxy_port%'
+
+    App\Service\RuCaptcha:
+        arguments:
+            $token: '%env(APP_RUCAPTCHA_TOKEN)%'
+
+    App\Service\Torrent\TransmissionClient:
+        arguments:
+            $host: '%env(APP_TRANSMISSION_HOST)%'
+            $port: '%env(int:APP_TRANSMISSION_PORT)%'
+            $login: '%env(APP_TRANSMISSION_LOGIN)%'
+            $password: '%env(APP_TRANSMISSION_PASSWORD)%'
+
+    App\Service\Torrent\RutrackerClient:
+        arguments:
+            $login: '%app_torrent_login%'
+            $pass: '%app_torrent_pass%'
+            $loginUrl: '%app_torrent_url_login%'
+            $searchUrl: '%app_torrent_url_search%'
+            $forumUrl: '%app_torrent_url_forum%'
+            $proxy: 'http://%app_proxy_auth%@%app_proxy_ip%:%app_proxy_port%'
+            $transmission: '@App\Service\Torrent\TransmissionClient'

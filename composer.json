@@ -1,0 +1,75 @@
+{
+    "type": "project",
+    "license": "proprietary",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=7.2.5",
+        "ext-ctype": "*",
+        "ext-curl": "*",
+        "ext-iconv": "*",
+        "ext-json": "*",
+        "nyholm/psr7": "^1.4",
+        "sensio/framework-extra-bundle": "^6.2",
+        "symfony/apache-pack": "^1.0",
+        "symfony/browser-kit": "5.4.*",
+        "symfony/console": "5.4.*",
+        "symfony/css-selector": "5.4.*",
+        "symfony/dom-crawler": "5.4.*",
+        "symfony/dotenv": "5.4.*",
+        "symfony/flex": "^1.17|^2",
+        "symfony/framework-bundle": "5.4.*",
+        "symfony/http-client": "5.4.*",
+        "symfony/maker-bundle": "^1.36",
+        "symfony/runtime": "5.4.*",
+        "symfony/yaml": "5.4.*",
+        "transmission-php/transmission-php": "^2.2"
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/flex": true,
+            "symfony/runtime": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "replace": {
+        "symfony/polyfill-ctype": "*",
+        "symfony/polyfill-iconv": "*",
+        "symfony/polyfill-php72": "*"
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+        },
+        "post-install-cmd": [
+            "@auto-scripts"
+        ],
+        "post-update-cmd": [
+            "@auto-scripts"
+        ]
+    },
+    "conflict": {
+        "symfony/symfony": "*"
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "5.4.*"
+        }
+    }
+}
