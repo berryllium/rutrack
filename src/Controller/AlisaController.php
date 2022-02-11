@@ -17,11 +17,10 @@ class AlisaController extends AbstractController
     public function index(Request $request, TorrentClientInterface $client): Response
     {
         $requestArr = $request->toArray();
-        $text = '';
-        if($requestArr['session']['new']) {
-            $end_session = false;
-            $text = 'Что хочешь скачать, малыш?';
-        } elseif($q = $requestArr['request']['command']) {
+        $end_session = false;
+        $text = 'Что хочешь скачать, малыш?';
+
+        if(!$requestArr['session']['new'] && ($q = $requestArr['request']['command'])) {
             $end_session = true;
             $list = $client->search(urlencode($q));
             if(count($list)) {
