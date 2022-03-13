@@ -18,7 +18,7 @@ class AlisaController extends AbstractController
     {
         $requestArr = $request->toArray();
         $end_session = false;
-        $text = 'Что хочешь скачать, малыш?';
+        $text = 'Ну, здравствуй, Джек, мать твою, воробей! Что для тебя скачать торрентов, бедолага?';
 
         if(!$requestArr['session']['new'] && ($q = $requestArr['request']['command'])) {
             $end_session = true;
@@ -41,16 +41,16 @@ class AlisaController extends AbstractController
                     }
                 }
                 if(!count($list)) {
-                    $text = 'Нет адекватного размера';
+                    $text = 'Нет адекватного размера, все файлы какие-то подозрительные';
                 } else {
                     $torrent = reset($list);
                     $result = $client->getMagnet($torrent['link']);
                     $text = $result ?
-                        'Поставила качаться ' . $torrent['name'] . ', весит ' . $torrent['size'] . ' Гигабайт':
+                        'Пошла жаришка, файл качается, ' . $torrent['name'] . ', весит ' . $torrent['size'] . ' Гигабайт':
                         'Что-то пошло не туда';
                 }
             } else {
-                $text = 'Ничего не смогла найти, попробуй еще разок!';
+                $text = 'Ничего не получилось найти, попробуй еще разок!';
             }
         }
         return $this->json([

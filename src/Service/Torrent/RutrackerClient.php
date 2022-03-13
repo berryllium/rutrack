@@ -134,6 +134,8 @@ class RutrackerClient implements TorrentClientInterface
             'pn' => '',
         ];
 
+        // TODO cookies захардкожены, не получается отловить в хедере, можно подсмотреть в браузере при авторизации
+
         $result = $this->httpClient->request('POST', $this->searchUrl . '?nm='. $q, [
             'proxy' => $this->proxy,
             'verify_peer' => false,
@@ -141,10 +143,9 @@ class RutrackerClient implements TorrentClientInterface
             'body' => $body,
             'headers' => [
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-                'Accept-Encoding' => 'gzip, deflate, br',
-                'Accept-Language' => 'ru,en;q=0.9,uk;q=0.8',
+                'Accept-Language' => 'ru,en',
                 'Connection' => 'keep-alive',
-                'Cookie' => 'bb_guid=gh0hIfMDfVIB; bb_ssl=1; bb_t=a%3A8%3A%7Bi%3A6139804%3Bi%3A1638551628%3Bi%3A6133301%3Bi%3A1636294672%3Bi%3A6139397%3Bi%3A1637797352%3Bi%3A6135668%3Bi%3A1637912338%3Bi%3A6126444%3Bi%3A1635331215%3Bi%3A6126281%3Bi%3A1635333039%3Bi%3A6112734%3Bi%3A1634505308%3Bi%3A6118109%3Bi%3A1634579556%3B%7D; bb_session=0-20363984-Hro8b5iASHsel5UIZ1r6; _ym_d=1633871861; _ym_uid=1624603601647677534; _ym_isad=2',
+                'Cookie' => 'bb_guid=VCy5uGiwOian; bb_ssl=1; bb_session=0-20363984-h2oefpeC9ZvZceVnqhYs; _ym_uid=1646934595566740400; _ym_d=1646934595; cf_clearance=5gIzbMM2LMsG6tozrXCYU2vt3vZEob8N.Mv6u672ALU-1646934659-0-150; _ym_isad=2',
                 'Host' => 'rutracker.org',
                 'sec-ch-ua' => '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
                 'sec-ch-ua-mobile' => '?0',
