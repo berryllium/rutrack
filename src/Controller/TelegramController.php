@@ -2,10 +2,9 @@
 
 namespace App\Controller;
 
+use App\Service\Telegram\TelegramClient;
 use App\Service\Torrent\TorrentClientInterface;
 use App\Service\Torrent\TransmissionClient;
-use Http\Client\Exception;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,22 +13,20 @@ use Transmission\Model\Torrent;
 class TelegramController extends AbstractController
 {
     private TorrentClientInterface $client;
-    private LoggerInterface $logger;
     private TransmissionClient $transmission;
+    private TelegramClient $telegramClient;
 
-    public function __construct(TorrentClientInterface $client, LoggerInterface $logger, TransmissionClient $transmission) {
+    public function __construct(TorrentClientInterface $client, TransmissionClient $transmission, TelegramClient $telegramClient) {
 
         $this->client = $client;
-        $this->logger = $logger;
         $this->transmission = $transmission;
+        $this->telegramClient = $telegramClient;
     }
-
-    private string $token = '5267750421:AAGTso1usH3TOiv575utKFEO4vwsXepj9zo';
 
     /**
      * @Route("/api/telegram", name="telegram", methods={"POST"})
      */
-    public function search() :Response
+    public function search() :?Response
     {
         $data = file_get_contents('php://input');
         $data = json_decode($data, true);
@@ -41,83 +38,33 @@ class TelegramController extends AbstractController
             $done = true;
             foreach ($list as $torrent) {
                 /** @var Torrent $torrent */
-                $status = $torrent->getStatus();
-                if($status == 4) {
+                if($torrent->isDownloading()) {
                     $done = false;
-                    $this->sendMess([
-                        'chat_id' => $chat,
-                        'text' => 'Файл '.$torrent->getName().' в процессе ' . $torrent->getPercentDone() . '%'
-                    ]);
+                    $name = $torrent->getName();
+                    $percent = $torrent->getPercentDone();
+                    $this->telegramClient->sendMess("Файл $name в процессе - $percent%", $chat);
                 }
             }
             if($done) {
-                $this->sendMess([
-                    'chat_id' => $chat,
-                    'text' => 'Все уже скачалось!'
-                ]);
+                $this->telegramClient->sendMess('Все уже скачалось!', $chat);
             }
-            return $this->json(null);
         } elseif($q) {
-            $this->sendMess([
-                'chat_id' => $chat,
-                'text' => 'Ищем торрент: ' . $q
-            ]);
-
+            $this->telegramClient->sendMess('Ищем торрент: ' . $q, $chat);
             $torrents = $this->client->search($q);
-
             if(!$torrents) {
-                $this->sendMess([
-                    'chat_id' => $chat,
-                    'text' => 'Сорян, ничего не нашел('
-                ]);
+                $this->telegramClient->sendMess('Сорян, ничего не нашел(', $chat);
             } else {
-                $this->sendMess([
-                    'chat_id' => $chat,
-                    'text' => 'Выбираем подходящий файл'
-                ]);
-
-                if($torrent = $this->checkSize($torrents)) {
-                    $this->sendMess([
-                        'chat_id' => $chat,
-                        'text' => 'Торрент '.$torrent['name'] . ' ' . $torrent['size'] . ' Мб скачивается.'
-                    ]);
+                $this->telegramClient->sendMess('Выбираем подходящий файл', $chat);
+                if($torrent = $this->telegramClient->chooseTorrent($torrents, $chat)) {
+                    $this->telegramClient->sendMess(
+                        'Торрент '.$torrent['name'] . ' ' . $torrent['size'] . ' Мб скачивается.',
+                        $chat
+                    );
                 } else {
-                    $this->sendMess([
-                        'chat_id' => $chat,
-                        'text' => "Не получилось ничего("
-                    ]);
-                }
-
-            }
-        }
-        return $this->json(null);
-    }
-
-    public function sendMess($message) {
-        $ch = curl_init('https://api.telegram.org/bot' . $this->token . '/sendMessage');
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $message);
-        curl_exec($ch);
-        curl_close($ch);
-    }
-
-    private function checkSize($torrents) {
-        foreach ($torrents as $torrent) {
-            $size = (float) preg_replace('#[^0-9\.]#', '', $torrent['size']);
-            if(strpos($torrent['size'], 'GB') !== false) {
-                $size *= 1000;
-            }
-            $this->logger->error($size);
-
-            if($size >= 1024 && $size <= 5000) {
-                if($id = $this->client->getMagnet($torrent['link'])) {
-                    $torrent['id'] = $id;
-                    $torrent['size'] = $size;
-                    return $torrent;
+                    $this->telegramClient->sendMess('Не получилось ничего(', $chat);
                 }
             }
         }
-        return false;
     }
 
 }

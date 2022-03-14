@@ -13,6 +13,7 @@ parameters:
     app_torrent_login: '%env(APP_TORRENT_LOGIN)%'
     app_torrent_pass: '%env(APP_TORRENT_PASSWORD)%'
     app_bb_cookies: '%env(APP_BB_COOKIES)%'
+    app_telegram_token: '%env(APP_TELEGRAM_TOKEN)%'
 
 services:
     # default configuration for services in *this* file
@@ -59,3 +60,7 @@ services:
             $proxy: 'http://%app_proxy_auth%@%app_proxy_ip%:%app_proxy_port%'
             $bb_cookies: '%app_bb_cookies%'
             $transmission: '@App\Service\Torrent\TransmissionClient'
+
+    App\Service\Telegram\TelegramClient:
+        arguments:
+            $token: '%app_telegram_token%'
