@@ -38,7 +38,7 @@ class RutrackerClient implements TorrentClientInterface
         "message_count" => 5,
         "last_seed" => 9
     ];
-
+    private $bb_cookies;
 
 
     public function __construct(
@@ -48,6 +48,7 @@ class RutrackerClient implements TorrentClientInterface
         $searchUrl,
         $forumUrl,
         $proxy,
+        $bb_cookies,
         HttpClientInterface $httpClient,
         RuCaptcha $captcha,
         TransmissionClient $transmission
@@ -61,6 +62,7 @@ class RutrackerClient implements TorrentClientInterface
         $this->captcha = $captcha;
         $this->forumUrl = $forumUrl;
         $this->transmission = $transmission;
+        $this->bb_cookies = $bb_cookies;
     }
 
     /**
@@ -134,8 +136,6 @@ class RutrackerClient implements TorrentClientInterface
             'pn' => '',
         ];
 
-        // TODO cookies захардкожены, не получается отловить в хедере, можно подсмотреть в браузере при авторизации
-
         $result = $this->httpClient->request('POST', $this->searchUrl . '?nm='. $q, [
             'proxy' => $this->proxy,
             'verify_peer' => false,
@@ -145,7 +145,7 @@ class RutrackerClient implements TorrentClientInterface
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
                 'Accept-Language' => 'ru,en',
                 'Connection' => 'keep-alive',
-                'Cookie' => 'bb_guid=VCy5uGiwOian; bb_ssl=1; bb_session=0-20363984-h2oefpeC9ZvZceVnqhYs; _ym_uid=1646934595566740400; _ym_d=1646934595; cf_clearance=5gIzbMM2LMsG6tozrXCYU2vt3vZEob8N.Mv6u672ALU-1646934659-0-150; _ym_isad=2',
+                'Cookie' => $this->bb_cookies,
                 'Host' => 'rutracker.org',
                 'sec-ch-ua' => '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
                 'sec-ch-ua-mobile' => '?0',
@@ -158,6 +158,7 @@ class RutrackerClient implements TorrentClientInterface
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36',
             ]
         ]);
+
 
         $crawler = new Crawler($result->getContent());
 
@@ -211,8 +212,14 @@ class RutrackerClient implements TorrentClientInterface
             'verify_peer' => false,
             'verify_host' => false,
         ]);
-        $crawler = new Crawler($result->getContent());
-        $magnet_link = $crawler->filter('a.magnet-link')->attr('href');
-        return $this->transmission->add($magnet_link)->getId();
+            if($result->getStatusCode() == 200) {
+                $crawler = new Crawler($result->getContent());
+                $magnet_link = $crawler->filter('a.magnet-link')->attr('href');
+                if($magnet_link) {
+                    return $this->transmission->add($magnet_link)->getId();
+                }
+            }
+
+        return false;
     }
 }

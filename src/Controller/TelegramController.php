@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Service\Torrent\TorrentClientInterface;
 use App\Service\Torrent\TransmissionClient;
+use Http\Client\Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,27 +36,31 @@ class TelegramController extends AbstractController
         $chat = $data['message']['chat']['id'];
         $q = $data['message']['text'];
 
-        if($q == 'и') {
+        if($q == '?') {
             $list = $this->transmission->all();
+            $done = true;
             foreach ($list as $torrent) {
                 /** @var Torrent $torrent */
                 $status = $torrent->getStatus();
                 if($status == 4) {
+                    $done = false;
                     $this->sendMess([
                         'chat_id' => $chat,
-                        'text' => 'Файл в процессе ' . $torrent->getPercentDone() . '%'
+                        'text' => 'Файл '.$torrent->getName().' в процессе ' . $torrent->getPercentDone() . '%'
                     ]);
-                    return $this->json(['status' => 'OK']);
                 }
             }
-            $this->sendMess([
-                'chat_id' => $chat,
-                'text' => 'Все уже скачалось!'
-            ]);
+            if($done) {
+                $this->sendMess([
+                    'chat_id' => $chat,
+                    'text' => 'Все уже скачалось!'
+                ]);
+            }
+            return $this->json(null);
         } elseif($q) {
             $this->sendMess([
                 'chat_id' => $chat,
-                'text' => 'Ищем торрент: ' . $q . ' ' . date('H:i:s')
+                'text' => 'Ищем торрент: ' . $q
             ]);
 
             $torrents = $this->client->search($q);
@@ -85,7 +90,7 @@ class TelegramController extends AbstractController
 
             }
         }
-        return $this->json(['status' => 'OK']);
+        return $this->json(null);
     }
 
     public function sendMess($message) {
@@ -97,17 +102,19 @@ class TelegramController extends AbstractController
     }
 
     private function checkSize($torrents) {
-
         foreach ($torrents as $torrent) {
             $size = (float) preg_replace('#[^0-9\.]#', '', $torrent['size']);
             if(strpos($torrent['size'], 'GB') !== false) {
                 $size *= 1000;
             }
+            $this->logger->error($size);
 
             if($size >= 1024 && $size <= 5000) {
-                $this->client->getMagnet($torrent['link']);
-                $torrent['size'] = $size;
-                return $torrent;
+                if($id = $this->client->getMagnet($torrent['link'])) {
+                    $torrent['id'] = $id;
+                    $torrent['size'] = $size;
+                    return $torrent;
+                }
             }
         }
         return false;

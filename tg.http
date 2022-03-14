@@ -3,5 +3,10 @@ Accept: application/json
 
 
 {
-  "message": {"test":"и"},
+  "message": {
+    "chat": {
+      "id": 168827230
+    },
+    "text": "аркейн"
+  }
 }
