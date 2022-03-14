@@ -1,5 +1,0 @@
-POST https://localhost:8000/api/alisa
-Accept: application/json
-
-
-{"test"}

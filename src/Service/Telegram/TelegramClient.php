@@ -11,12 +11,14 @@ class TelegramClient
     private array $queue;
     private string $fileQueue;
     private TorrentClientInterface $transmissionClient;
+    private $default_chat;
 
-    public function __construct($token, TorrentClientInterface $transmissionClient) {
+    public function __construct($token, $default_chat, TorrentClientInterface $transmissionClient) {
         $this->token = $token;
         $this->transmissionClient = $transmissionClient;
         $this->fileQueue = dirname(__DIR__, 3) . '/var/telegramTorrentQueue.txt';
         $this->readQueue();
+        $this->default_chat = $default_chat;
     }
 
     public function sendMess($message, $chat): bool
@@ -54,8 +56,10 @@ class TelegramClient
         return false;
     }
 
-    public function addToQueue(string $id, $chat)
+    public function addToQueue(string $id, $chat = false)
     {
+        $chat = $chat ?: $this->default_chat;
+        if(!$chat || !$id) return false;
         $this->queue[$id] = $chat;
         $this->writeQueue();
     }
@@ -76,7 +80,6 @@ class TelegramClient
         } else {
             $this->queue = [];
         }
-
         return $this->queue;
     }
 

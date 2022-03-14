@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\Telegram\TelegramClient;
 use App\Service\Torrent\TorrentClientInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,7 +15,7 @@ class AlisaController extends AbstractController
     /**
      * @Route("/api/alisa", name="alisa", methods={"POST"})
      */
-    public function index(Request $request, TorrentClientInterface $client): Response
+    public function index(Request $request, TorrentClientInterface $client, TelegramClient $telegram): Response
     {
         $requestArr = $request->toArray();
         $end_session = false;
@@ -44,10 +45,13 @@ class AlisaController extends AbstractController
                     $text = 'Нет адекватного размера, все файлы какие-то подозрительные';
                 } else {
                     $torrent = reset($list);
-                    $result = $client->getMagnet($torrent['link']);
-                    $text = $result ?
-                        'Пошла жаришка, файл качается, ' . $torrent['name'] . ', весит ' . $torrent['size'] . ' Гигабайт':
-                        'Что-то пошло не туда';
+                    if($id = $client->getMagnet($torrent['link'])){
+                        $telegram->addToQueue($id);
+                        $text = $id . 'Пошла жаришка, файл качается, ' . $torrent['name'] . ', весит ' .
+                            $torrent['size'] . ' Гигабайт';
+                    } else {
+                        $text = 'Что-то пошло не туда';
+                    }
                 }
             } else {
                 $text = 'Ничего не получилось найти, попробуй еще разок!';

@@ -14,6 +14,7 @@ parameters:
     app_torrent_pass: '%env(APP_TORRENT_PASSWORD)%'
     app_bb_cookies: '%env(APP_BB_COOKIES)%'
     app_telegram_token: '%env(APP_TELEGRAM_TOKEN)%'
+    app_telegram_default_chat: '%env(APP_TELEGRAM_DEFAULT_CHAT)%'
 
 services:
     # default configuration for services in *this* file
@@ -64,3 +65,4 @@ services:
     App\Service\Telegram\TelegramClient:
         arguments:
             $token: '%app_telegram_token%'
+            $default_chat: '%app_telegram_default_chat%'
