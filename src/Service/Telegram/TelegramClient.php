@@ -15,15 +15,20 @@ class TelegramClient
     public function __construct($token, TorrentClientInterface $transmissionClient) {
         $this->token = $token;
         $this->transmissionClient = $transmissionClient;
-        $this->fileQueue = dirname(__DIR__) . '/telegramTorrentQueue.txt';
+        $this->fileQueue = dirname(__DIR__, 3) . '/var/telegramTorrentQueue.txt';
         $this->readQueue();
     }
 
-    public function sendMess($message, $chat = ''): bool
+    public function sendMess($message, $chat): bool
     {
+        $data = [
+            'text' => $message,
+            'chat_id' => $chat
+        ];
+
         $ch = curl_init('https://api.telegram.org/bot' . $this->token . '/sendMessage');
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $message);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -31,12 +36,13 @@ class TelegramClient
     }
 
     public function chooseTorrent($torrents, $chat) {
+
         foreach ($torrents as $torrent) {
             $size = (float) preg_replace('#[^0-9\.]#', '', $torrent['size']);
             if(strpos($torrent['size'], 'GB') !== false) {
                 $size *= 1000;
             }
-            if($size >= 10 && $size <= 200) {
+            if($size >= 1000 && $size <= 5000) {
                 if($id = $this->transmissionClient->getMagnet($torrent['link'])) {
                     $this->addToQueue($id, $chat);
                     $torrent['id'] = $id;

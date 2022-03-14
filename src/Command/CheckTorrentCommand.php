@@ -22,8 +22,6 @@ class CheckTorrentCommand extends Command
         parent::__construct(null);
         $this->transmissionClient = $transmissionClient;
         $this->telegramClient = $telegramClient;
-
-
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -31,6 +29,8 @@ class CheckTorrentCommand extends Command
         $io = new SymfonyStyle($input, $output);
         if($count = $this->check()) {
             $io->info('Завершена загрузка: ' . $count);
+        } else {
+            $io->info('Нет торрентов');
         }
         return Command::SUCCESS;
     }

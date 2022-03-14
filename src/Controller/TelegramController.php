@@ -65,6 +65,6 @@ class TelegramController extends AbstractController
                 }
             }
         }
+        return $this->json('');
     }
-
 }
