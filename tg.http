@@ -1,0 +1,7 @@
+POST https://localhost:8000/api/telegram
+Accept: application/json
+
+
+{
+  "message": {"test":"и"},
+}

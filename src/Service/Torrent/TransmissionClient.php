@@ -34,4 +34,9 @@ class TransmissionClient
     {
         return $this->transmission->get($id);
     }
+
+    public function all(): array
+    {
+        return $this->transmission->all();
+    }
 }
