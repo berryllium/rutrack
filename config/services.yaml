@@ -22,6 +22,9 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
+        bind:
+            App\Service\Torrent\TorrentClientInterface: '@App\Service\Torrent\TorLafaClient'
+
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:
@@ -50,6 +53,10 @@ services:
             $port: '%env(int:APP_TRANSMISSION_PORT)%'
             $login: '%env(APP_TRANSMISSION_LOGIN)%'
             $password: '%env(APP_TRANSMISSION_PASSWORD)%'
+
+    App\Service\Torrent\TorLafaClient:
+        arguments:
+            $transmission: '@App\Service\Torrent\TransmissionClient'
 
     App\Service\Torrent\RutrackerClient:
         arguments:

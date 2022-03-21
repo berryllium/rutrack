@@ -1,0 +1,10 @@
+POST https://localhost:8000/api/telegram
+
+{
+  "message": {
+    "chat": {
+      "id": 168827230
+    },
+    "text": "Бегущий по лезвию 2049"
+  }
+}

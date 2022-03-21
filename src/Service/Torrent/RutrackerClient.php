@@ -76,6 +76,7 @@ class RutrackerClient implements TorrentClientInterface
             'verify_host' => false,
         ]);
         $fields = [];
+        if(!$result->getStatusCode() != 200) return false;
         $crawler = new Crawler($result->getContent());
         $inputs = $crawler->filter('#login-form-full input');
         $inputs->each(function ($node) use (&$fields){
@@ -124,11 +125,14 @@ class RutrackerClient implements TorrentClientInterface
     }
 
     /**
+     * return array | null
      * @inheritDoc
      */
-    public function search(string $q): array
+    public function search(string $q): ?array
     {
-        $this->auth();
+        if(!$this->auth()) {
+            return null;
+        }
         $body = [
             'f' => [-1],
             'o' => $this->order_options['seeders'],
@@ -145,7 +149,7 @@ class RutrackerClient implements TorrentClientInterface
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
                 'Accept-Language' => 'ru,en',
                 'Connection' => 'keep-alive',
-                'Cookie' => $this->bb_cookies,
+                'Cookie' => 'bb_session=0-20363984-h2oefpeC9ZvZceVnqhYs; expires=Tue, 16-Mar-2032 23:02:03 GMT; Max-Age=315360000; path=/forum/; domain=.rutracker.org; secure; HttpOnly',
                 'Host' => 'rutracker.org',
                 'sec-ch-ua' => '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
                 'sec-ch-ua-mobile' => '?0',

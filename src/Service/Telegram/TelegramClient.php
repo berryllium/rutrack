@@ -10,12 +10,12 @@ class TelegramClient
     private string $token;
     private array $queue;
     private string $fileQueue;
-    private TorrentClientInterface $transmissionClient;
+    private TorrentClientInterface $torrentClient;
     private $default_chat;
 
-    public function __construct($token, $default_chat, TorrentClientInterface $transmissionClient) {
+    public function __construct($token, $default_chat, TorrentClientInterface $lafaClient) {
         $this->token = $token;
-        $this->transmissionClient = $transmissionClient;
+        $this->torrentClient = $lafaClient;
         $this->fileQueue = dirname(__DIR__, 3) . '/var/telegramTorrentQueue.txt';
         $this->readQueue();
         $this->default_chat = $default_chat;
@@ -45,7 +45,7 @@ class TelegramClient
                 $size *= 1000;
             }
             if($size >= 1000 && $size <= 5000) {
-                if($id = $this->transmissionClient->getMagnet($torrent['link'])) {
+                if($id = $this->torrentClient->getMagnet($torrent['link'])) {
                     $this->addToQueue($id, $chat);
                     $torrent['id'] = $id;
                     $torrent['size'] = $size;
