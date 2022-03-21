@@ -60,7 +60,7 @@ class TelegramController extends AbstractController
                     $this->telegramClient->sendMess('Выбираем подходящий файл', $chat);
                     if($torrent = $this->telegramClient->chooseTorrent($torrents, $chat)) {
                         $this->telegramClient->sendMess(
-                            'Торрент '.$torrent['name'] . ' ' . $torrent['size'] . ' Мб скачивается.',
+                            'Торрент '.$torrent['name'] . ' скачивается.' . ' Размер: ' . $torrent['size'] . ' Мб',
                             $chat
                         );
                     } else {

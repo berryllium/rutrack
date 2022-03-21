@@ -13,6 +13,10 @@ class TorLafaClient implements TorrentClientInterface
 
     private HttpClientInterface $httpClient;
     private TransmissionClient $transmission;
+    /**
+     * @var false|mixed
+     */
+    private $torrent;
 
     public function __construct(HttpClientInterface $httpClient, TransmissionClient $transmission)
     {
@@ -31,7 +35,7 @@ class TorLafaClient implements TorrentClientInterface
         $body = [
             'rnd' => (1 / rand(1, 1000)) * 100,
             'action' => 'quicksearch',
-            'keyword' => 'Бегущий по лезвию 2049',
+            'keyword' => $q,
         ];
 
         $result = $this->httpClient->request('GET', $this->searchUrl . '?' . http_build_query($body), [
@@ -54,11 +58,11 @@ class TorLafaClient implements TorrentClientInterface
             return ['name' => $a->text(), 'link' => $a->attr('href')];
         });
 
-        if(empty($list)) return null;
+        if(empty($list)) return [];
 
-        $torrent = reset($list);
+        $this->torrent = reset($list);
 
-        $result = $this->httpClient->request('GET', $this->forumUrl . $torrent['link'], [
+        $result = $this->httpClient->request('GET', $this->forumUrl . $this->torrent['link'], [
             'verify_peer' => false,
             'verify_host' => false,
             'headers' => [
@@ -69,19 +73,23 @@ class TorLafaClient implements TorrentClientInterface
 
         $crawler = new Crawler($result->getContent());
 
+        $this->torrent['name'] = $crawler->filter('.detail_tbl tr')->first()->filter('[itemprop="name"]')->first()->text();
+
         $table = $crawler->filter('#tbody_id2>tr:not(.expand-child)')->each(function ($tr) {
             return $tr->filter('td')->each(function ($td, $k) {
+                /** @var Crawler $td */
                 $text = trim($td->text());
                 if($k == 4) {
                     return ['code' => 'link', 'value' => $td->filter('a')->attr('href')];
                 } elseif($k == 3) {
                     return ['code' => 'size',  'value' => $text];
                 } elseif($k == 1) {
-                    return ['code' => 'name',  'value' => 'по запросу'];
+                    return ['code' => 'name',  'value' => $this->torrent['name']];
                 }
                 return null;
             });
         });
+
 
         $result = [];
         foreach ($table as $k => $tr) {
