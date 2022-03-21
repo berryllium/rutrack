@@ -140,7 +140,7 @@ class RutrackerClient implements TorrentClientInterface
             'pn' => '',
         ];
 
-        $result = $this->httpClient->request('POST', $this->searchUrl . '?nm='. $q, [
+        $result = $this->httpClient->request('POST', $this->searchUrl . '?nm='. urlencode($q), [
             'proxy' => $this->proxy,
             'verify_peer' => false,
             'verify_host' => false,

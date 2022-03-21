@@ -46,7 +46,7 @@ class CheckTorrentCommand extends Command
             if(isset($telegramQueue[$id]) && $torrent->isFinished()) {
                 $counter++;
                 $chat = $telegramQueue[$id];
-                $message = 'Файл ' . $torrent->getName() . ' скачался, врубай телек!';
+                $message = 'Файл ' . $torrent->getName() . ' скачался! Врубай ' . $this->telegramClient->smile('television');
                 $this->telegramClient->sendMess($message, $chat);
                 $this->telegramClient->removeFromQueue($id);
             }

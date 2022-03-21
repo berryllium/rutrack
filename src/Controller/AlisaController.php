@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Service\Telegram\TelegramClient;
 use App\Service\Torrent\TorrentClientInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,7 +22,7 @@ class AlisaController extends AbstractController
 
         if(!$requestArr['session']['new'] && ($q = $requestArr['request']['command'])) {
             $end_session = true;
-            $list = $client->search(urlencode($q));
+            $list = $client->search($q);
             if(count($list)) {
 
                 foreach ($list as $key => &$item) {
@@ -47,7 +46,7 @@ class AlisaController extends AbstractController
                     $torrent = reset($list);
                     if($id = $client->getMagnet($torrent['link'])){
                         $telegram->addToQueue($id);
-                        $text = $id . 'Пошла жаришка, файл качается, ' . $torrent['name'] . ', весит ' .
+                        $text = 'Пошла жаришка, файл качается, ' . $torrent['name'] . ', весит ' .
                             $torrent['size'] . ' Гигабайт';
                     } else {
                         $text = 'Что-то пошло не туда';

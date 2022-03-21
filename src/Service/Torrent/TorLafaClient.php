@@ -50,7 +50,7 @@ class TorLafaClient implements TorrentClientInterface
             ]
         ]);
 
-        file_put_contents('crawler.html', $result->getContent());
+        file_put_contents('search.html', $result->getContent());
 
         $crawler = new Crawler($result->getContent());
         $list = $crawler->filter('a')->each(function ($a){
@@ -71,20 +71,23 @@ class TorLafaClient implements TorrentClientInterface
             ]
         ]);
 
+        file_put_contents('detail.html', $result->getContent());
+
         $crawler = new Crawler($result->getContent());
 
         $this->torrent['name'] = $crawler->filter('.detail_tbl tr')->first()->filter('[itemprop="name"]')->first()->text();
 
-        $table = $crawler->filter('#tbody_id2>tr:not(.expand-child)')->each(function ($tr) {
+        $table = $crawler->filter('#tablesorter tbody>tr:not(.expand-child)')->each(function ($tr) {
             return $tr->filter('td')->each(function ($td, $k) {
                 /** @var Crawler $td */
                 $text = trim($td->text());
-                if($k == 4) {
-                    return ['code' => 'link', 'value' => $td->filter('a')->attr('href')];
-                } elseif($k == 3) {
+                if($td->filter('a')->count() > 0) {
+                    $link = $td->filter('a')->first()->attr('href');
+                    if(strpos($link, 'magnet') === 0) {
+                        return ['code' => 'link', 'value' => $link];
+                    }
+                } elseif(strpos($text, ' GB') > 0 || strpos($text, ' MB') > 0) {
                     return ['code' => 'size',  'value' => $text];
-                } elseif($k == 1) {
-                    return ['code' => 'name',  'value' => $this->torrent['name']];
                 }
                 return null;
             });
@@ -96,6 +99,7 @@ class TorLafaClient implements TorrentClientInterface
             foreach ($tr as $td) {
                 if($td) {
                     $result[$k][$td['code']] = $td['value'];
+                    $result[$k]['name'] = $this->torrent['name'];
                 }
             }
         }

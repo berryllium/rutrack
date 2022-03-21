@@ -42,7 +42,7 @@ class TelegramController extends AbstractController
                         $done = false;
                         $name = $torrent->getName();
                         $percent = $torrent->getPercentDone();
-                        $this->telegramClient->sendMess("Файл $name в процессе - $percent%", $chat);
+                        $this->telegramClient->sendMess($this->telegramClient->smile('clock') . " $name в процессе - $percent%", $chat);
                     }
                 }
                 if($done) {
@@ -50,21 +50,23 @@ class TelegramController extends AbstractController
                 }
                 return $this->json('OK');
             } elseif($q) {
-                $this->telegramClient->sendMess('Ищем торрент: ' . $q, $chat);
+                $this->telegramClient->sendMess($this->telegramClient->smile('telescope') . ' Ищем торрент: ' . $q, $chat);
                 $torrents = $this->client->search($q);
                 if($torrents === null) {
                     $this->telegramClient->sendMess('Беда с авторизацией, опять сервис заблокировали(', $chat);
                 }elseif(!$torrents) {
-                    $this->telegramClient->sendMess('Сорян, ничего не нашел(', $chat);
+                    $this->telegramClient->sendMess('Сорян, ничего не нашел', $chat);
+                    $this->telegramClient->sendMess($this->telegramClient->smile('sweat'), $chat);
                 } else {
                     $this->telegramClient->sendMess('Выбираем подходящий файл', $chat);
                     if($torrent = $this->telegramClient->chooseTorrent($torrents, $chat)) {
                         $this->telegramClient->sendMess(
-                            'Торрент '.$torrent['name'] . ' скачивается.' . ' Размер: ' . $torrent['size'] . ' Мб',
+                            $this->telegramClient->smile('clock') . ' Торрент '.$torrent['name'] . ' скачивается.' . ' Размер: ' . $torrent['size'] . ' Мб',
                             $chat
                         );
                     } else {
-                        $this->telegramClient->sendMess('Не получилось ничего(', $chat);
+                        $this->telegramClient->sendMess('Не получилось ничего', $chat);
+                        $this->telegramClient->sendMess($this->telegramClient->smile('cry'), $chat);
                     }
                 }
                 return $this->json('OK');

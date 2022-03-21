@@ -83,4 +83,15 @@ class TelegramClient
         return $this->queue;
     }
 
+    public function smile($name) :string{
+        $smiles = [
+            'telescope' => '\xF0\x9F\x94\xAD',
+            'television' => '\xF0\x9F\x93\xBA',
+            'clock' => '\xF0\x9F\x95\x96',
+            'cry' => '\xF0\x9F\x98\xA2',
+            'sweat' => '\xF0\x9F\x98\x93',
+        ];
+        return $smiles[$name] ? hex2bin(str_replace('\x', '', $smiles[$name])) : '';
+    }
+
 }
